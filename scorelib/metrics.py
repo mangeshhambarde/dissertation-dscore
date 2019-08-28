@@ -483,15 +483,18 @@ def der(ref_turns, sys_turns, collar=0.0, ignore_overlaps=False, uem=None):
     ders[np.isnan(ders)] = 0 # Numerator and denominator both 0.
     ders[np.isinf(ders)] = 1 # Numerator > 0, but denominator = 0.
     ders *= 100. # Convert to percent.
+    miss_per = miss_speaker_times / scored_speaker_times * 100.
+    fa_per = fa_speaker_times / scored_speaker_times * 100.
+    error_per = error_speaker_times / scored_speaker_times * 100.
 
     # Reconcile with UEM, keeping in mind that in the edge case where no
     # reference turns are observed for a file, md-eval doesn't report results
     # for said file.
-    file_to_der_base = dict(zip(file_ids, ders))
+    file_to_der_base = dict(zip(file_ids, zip(ders, miss_per, fa_per, error_per)))
     file_to_der = {}
     for file_id in uem:
         try:
-            der = file_to_der_base[file_id]
+            total, miss, fa, error = file_to_der_base[file_id]
         except KeyError:
             # Check for any system turns for that file, which should be FAs,
             # assuming that the turns have been cropped to the UEM scoring
@@ -499,7 +502,7 @@ def der(ref_turns, sys_turns, collar=0.0, ignore_overlaps=False, uem=None):
             n_sys_turns = len(
                 [turn for turn in sys_turns if turn.file_id == file_id])
             der = 100. if n_sys_turns else 0.0
-        file_to_der[file_id] = der
+        file_to_der[file_id] = (total, miss, fa, error)
     global_der = file_to_der_base['ALL']
 
     return file_to_der, global_der

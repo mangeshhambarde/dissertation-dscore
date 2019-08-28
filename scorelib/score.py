@@ -96,7 +96,7 @@ def flatten_labels(labels):
 
 class Scores(namedtuple(
         'Scores',
-        ['file_id', 'der', 'jer', 'bcubed_precision', 'bcubed_recall',
+        ['file_id', 'der', 'spkr_miss', 'spkr_fa', 'spkr_err', 'jer', 'bcubed_precision', 'bcubed_recall',
          'bcubed_f1', 'tau_ref_sys', 'tau_sys_ref', 'ce_ref_sys',
          'ce_sys_ref', 'mi', 'nmi'])):
     """Structure containing metrics.
@@ -244,8 +244,9 @@ def score(ref_turns, sys_turns, uem, step=0.010, nats=False, jer_min_ref_dur=0.0
         ce_ref_sys = metrics.conditional_entropy(None, None, cm, nats)
         ce_sys_ref = metrics.conditional_entropy(None, None, cm.T, nats)
         mi, nmi = metrics.mutual_information(None, None, cm, nats)
+        total, miss, fa, error = der
         return Scores(
-            fid, der, jer, bcubed_precision, bcubed_recall, bcubed_f1,
+            fid, total, miss, fa, error, jer, bcubed_precision, bcubed_recall, bcubed_f1,
             tau_ref_sys, tau_sys_ref, ce_ref_sys, ce_sys_ref, mi, nmi)
     file_scores = []
     for file_id, cm in iteritems(file_to_cm):
